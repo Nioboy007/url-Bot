@@ -41,9 +41,8 @@ def download_link(_, message: Message):
     # Extract the link from the message
     download_link = message.text.strip()
 
-    # Use aria2 to download the file
+    # Use the global aria2 instance to download the file
     download_path = "downloads/"
-    aria2 = Aria2(Aria2RPC())
     download = aria2.add_uris([download_link], {"dir": download_path})
 
     # Wait for the download to finish
