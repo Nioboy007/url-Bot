@@ -1,8 +1,8 @@
 from pyrogram import Client, filters
 import wget
 import os
+import requests
 
-# Set your API credentials
 api_id = "10471716"
 api_hash = "f8a1b21a13af154596e2ff5bed164860"
 bot_token = "6365859811:AAGK5hlLKtLf-RqlaEXngZTWnfSPISerWPI"
@@ -27,11 +27,17 @@ def download_file(client, message):
         temp_folder = "downloads"
         os.makedirs(temp_folder, exist_ok=True)
 
-        # Generate a unique filename based on the link
-        filename = os.path.join(temp_folder, os.path.basename(link))
+        # Determine the filename using Content-Disposition
+        response = requests.head(link)
+        content_disposition = response.headers.get('Content-Disposition')
+        if content_disposition and 'filename' in content_disposition:
+            filename = os.path.join(temp_folder, content_disposition.split('filename=')[1].strip('\"'))
+        else:
+            filename = os.path.join(temp_folder, os.path.basename(link))
 
-        # Download the file using wget
-        wget.download(link, out=filename)
+        # Download the file using wget and print output
+        output = wget.download(link, out=filename, bar=wget.bar_thermometer)
+        message.reply_text(f"File downloaded: {output}")
 
         # Send the downloaded file to the user
         message.reply_document(document=filename)
