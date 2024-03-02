@@ -1,6 +1,10 @@
 from pyrogram import Client, filters
 from pyrogram.types import Message
 from aria2p import API
+from aria2p import Aria2, Aria2RPC
+
+aria2 = Aria2(Aria2RPC())
+
 # Replace 'YOUR_BOT_TOKEN' with your actual bot token
 API_KEY = '6365859811:AAGK5hlLKtLf-RqlaEXngZTWnfSPISerWPI'
 API_ID = 10471716 # Replace with your actual API ID
@@ -39,7 +43,7 @@ def download_link(_, message: Message):
 
     # Use aria2 to download the file
     download_path = "downloads/"
-    aria2 = Aria2RPC()
+    aria2 = Aria2(Aria2RPC())
     download = aria2.add_uris([download_link], {"dir": download_path})
 
     # Wait for the download to finish
@@ -51,7 +55,8 @@ def download_link(_, message: Message):
     else:
         # If successful, reply with the file
         downloaded_file_path = download.followed_by_ids[0]
-        message.reply_document(downloaded_file_path)
+        with open(downloaded_file_path, "rb") as file:
+            message.reply_document(file)
 
 
 if __name__ == "__main__":
