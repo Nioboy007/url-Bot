@@ -6,7 +6,6 @@ from urllib.parse import unquote
 import threading
 
 # Set your API credentials
-api_id = "your_api_id"
 api_id = "10471716"
 api_hash = "f8a1b21a13af154596e2ff5bed164860"
 bot_token = "6365859811:AAGK5hlLKtLf-RqlaEXngZTWnfSPISerWPI"
@@ -33,7 +32,7 @@ def start_message(client, message):
 
 # Define a command handler for the /download command
 @app.on_message(filters.command("download"))
-def download_file(client, message):
+def download_file_handler(client, message):
     try:
         # Get the link from the command
         link = message.text.split(None, 1)[1]
@@ -47,18 +46,18 @@ def download_file(client, message):
             sanitized_filename = re.sub(r'[\/:*?"<>|]', '_', original_filename)
             filename = os.path.join(os.getcwd(), sanitized_filename)
         else:
-            # If Content-Disposition is not present, inform the user
-            message.reply_text("Content-Disposition header not found. Unable to determine filename.")
-            return
+            # If Content-Disposition is not present, use unquoted URL filename
+            filename = os.path.join(os.getcwd(), unquote(os.path.basename(link)))
 
-        # Determine file size
-        file_size = int(response.headers.get('Content-Length', 0))
-
-        # Number of threads to use (adjust based on your preference)
+        # Number of threads to use
         num_threads = 4
 
         # Calculate chunk size for each thread
-        chunk_size = file_size // num_threads
+        chunk_size = -1
+        content_length = response.headers.get('Content-Length')
+        if content_length:
+            content_length = int(content_length)
+            chunk_size = content_length // num_threads
 
         # Create a semaphore to control thread synchronization
         semaphore = threading.Semaphore(0)
