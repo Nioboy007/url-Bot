@@ -31,7 +31,9 @@ def download_file(client, message):
         response = requests.head(link)
         content_disposition = response.headers.get('Content-Disposition')
         if content_disposition and 'filename' in content_disposition:
-            filename = os.path.join(temp_folder, content_disposition.split('filename=')[1].strip('\"'))
+            original_filename = content_disposition.split('filename=')[1].strip('\"')
+            # Truncate or modify the filename to make it shorter
+            filename = os.path.join(temp_folder, original_filename[:50])  # Adjust the length as needed
         else:
             filename = os.path.join(temp_folder, os.path.basename(link))
 
