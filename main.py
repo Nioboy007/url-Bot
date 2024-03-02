@@ -2,7 +2,6 @@ from pyrogram import Client, filters
 import wget
 import os
 
-# Set your API credentials
 api_id = "10471716"
 api_hash = "f8a1b21a13af154596e2ff5bed164860"
 bot_token = "6365859811:AAGK5hlLKtLf-RqlaEXngZTWnfSPISerWPI"
@@ -27,8 +26,8 @@ def download_file(client, message):
         temp_folder = "downloads"
         os.makedirs(temp_folder, exist_ok=True)
 
-        # Download the file using wget and handle non-ASCII characters
-        output = wget.download(link, out=temp_folder, bar=wget.bar_thermometer, unicode=True)
+        # Determine the filename using Content-Disposition
+        output = wget.download(link, out=temp_folder, bar=wget.bar_thermometer)
 
         # Send the downloaded file to the user
         message.reply_document(document=output)
