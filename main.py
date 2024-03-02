@@ -25,7 +25,7 @@ def start_command(_, message):
     message.reply_text("Hello! Send me a link, and I'll download and upload the file for you. 📤")
 
 
-@app.on_message(filters.text & ~filters.command)
+@app.on_message(filters.text & filters.command)
 def handle_links(_, message: Message):
     chat_id = message.chat.id
     message_id = message.message_id
