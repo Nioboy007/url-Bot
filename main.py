@@ -1,8 +1,10 @@
 from pyrogram import Client, filters
-import wget
+import requests
 import os
+import re
+from urllib.parse import unquote
 
-api_id = "10471716"
+# api_id = "10471716"
 api_hash = "f8a1b21a13af154596e2ff5bed164860"
 bot_token = "6365859811:AAGK5hlLKtLf-RqlaEXngZTWnfSPISerWPI"
 
@@ -27,13 +29,27 @@ def download_file(client, message):
         os.makedirs(temp_folder, exist_ok=True)
 
         # Determine the filename using Content-Disposition
-        output = wget.download(link, out=temp_folder, bar=wget.bar_thermometer)
+        response = requests.head(link)
+        content_disposition = response.headers.get('Content-Disposition')
+        if content_disposition and 'filename' in content_disposition:
+            original_filename = content_disposition.split('filename=')[1].strip('\"')
+            # Replace invalid characters with underscores
+            sanitized_filename = re.sub(r'[\/:*?"<>|]', '_', original_filename)
+            filename = os.path.join(temp_folder, sanitized_filename)
+        else:
+            # If Content-Disposition is not present, use unquoted URL filename
+            filename = os.path.join(temp_folder, unquote(os.path.basename(link)))
+
+        # Download the file using requests
+        with open(filename, 'wb') as file:
+            response = requests.get(link)
+            file.write(response.content)
 
         # Send the downloaded file to the user
-        message.reply_document(document=output)
+        message.reply_document(document=filename)
 
         # Remove the temporary folder and its contents
-        os.remove(output)
+        os.remove(filename)
         os.rmdir(temp_folder)
 
     except IndexError:
