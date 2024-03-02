@@ -1,7 +1,6 @@
 from pyrogram import Client, filters
 from pyrogram.types import Message
-from aria2p import Aria2RPC
-
+from aria2p import API
 # Replace 'YOUR_BOT_TOKEN' with your actual bot token
 API_KEY = '6365859811:AAGK5hlLKtLf-RqlaEXngZTWnfSPISerWPI'
 
