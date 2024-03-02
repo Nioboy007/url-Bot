@@ -26,7 +26,7 @@ def start_command(_, message):
 
 
 @app.on_message(filters.text & ~filters.command)
-def handle_links(_, message):
+def handle_links(_, message: Message):
     chat_id = message.chat.id
     message_id = message.message_id
 
