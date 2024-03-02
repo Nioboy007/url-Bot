@@ -4,6 +4,8 @@ import os
 import re
 from urllib.parse import unquote
 import threading
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
 
 # Set your API credentials
 api_id = "10471716"
@@ -14,15 +16,24 @@ bot_token = "6365859811:AAGK5hlLKtLf-RqlaEXngZTWnfSPISerWPI"
 app = Client("my_bot", api_id=api_id, api_hash=api_hash, bot_token=bot_token)
 
 # Function to download a chunk of the file
-def download_chunk(url, start_byte, end_byte, filename, semaphore):
+def download_chunk(url, start_byte, end_byte, filename, semaphore, session):
     headers = {'Range': f'bytes={start_byte}-{end_byte}'}
-    with requests.get(url, headers=headers, stream=True) as response:
+    with session.get(url, headers=headers, stream=True) as response:
         response.raise_for_status()
         with open(filename, 'ab') as file:
             for chunk in response.iter_content(chunk_size=8192):
                 if chunk:
                     file.write(chunk)
     semaphore.release()
+
+# Create a retry session with exponential backoff
+def create_retry_session():
+    retries = Retry(total=5, backoff_factor=1, status_forcelist=[500, 502, 503, 504])
+    adapter = HTTPAdapter(max_retries=retries)
+    session = requests.Session()
+    session.mount('http://', adapter)
+    session.mount('https://', adapter)
+    return session
 
 # Define a start message handler
 @app.on_message(filters.command("start"))
@@ -59,6 +70,9 @@ def download_file_handler(client, message):
             content_length = int(content_length)
             chunk_size = content_length // num_threads
 
+        # Create a retry session with exponential backoff
+        session = create_retry_session()
+
         # Create a semaphore to control thread synchronization
         semaphore = threading.Semaphore(0)
 
@@ -70,7 +84,7 @@ def download_file_handler(client, message):
             for i in range(num_threads):
                 start_byte = i * chunk_size
                 end_byte = (i + 1) * chunk_size - 1 if i < num_threads - 1 else None
-                thread = threading.Thread(target=download_chunk, args=(link, start_byte, end_byte, filename, semaphore))
+                thread = threading.Thread(target=download_chunk, args=(link, start_byte, end_byte, filename, semaphore, session))
                 threads.append(thread)
                 thread.start()
 
