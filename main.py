@@ -5,7 +5,7 @@ import os
 # Set your API credentials
 api_id = "10471716"
 api_hash = "f8a1b21a13af154596e2ff5bed164860"
-bot_token = "6365859811:AAGK5hlLKtLf-RqlaEXngZTWnfSPISerWPI""
+bot_token = "6365859811:AAGK5hlLKtLf-RqlaEXngZTWnfSPISerWPI"
 
 # Create the Pyrogram client
 app = Client("my_bot", api_id=api_id, api_hash=api_hash, bot_token=bot_token)
