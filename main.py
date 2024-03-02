@@ -2,6 +2,7 @@ from pyrogram import Client, filters
 import wget
 import os
 import requests
+import re
 
 api_id = "10471716"
 api_hash = "f8a1b21a13af154596e2ff5bed164860"
@@ -32,8 +33,9 @@ def download_file(client, message):
         content_disposition = response.headers.get('Content-Disposition')
         if content_disposition and 'filename' in content_disposition:
             original_filename = content_disposition.split('filename=')[1].strip('\"')
-            # Truncate or modify the filename to make it shorter
-            filename = os.path.join(temp_folder, original_filename[:50])  # Adjust the length as needed
+            # Replace invalid characters with underscores
+            sanitized_filename = re.sub(r'[\/:*?"<>|]', '_', original_filename)
+            filename = os.path.join(temp_folder, sanitized_filename)
         else:
             filename = os.path.join(temp_folder, os.path.basename(link))
 
