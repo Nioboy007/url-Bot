@@ -1,3 +1,4 @@
 pyrogram
 aria2p==1.9.0
 Tgcrypto
+wget
