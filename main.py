@@ -2,7 +2,6 @@ from pyrogram import Client, filters
 import requests
 import os
 import re
-from urllib.parse import unquote
 
 # Set your API credentials
 api_id = "10471716"
@@ -24,10 +23,6 @@ def download_file(client, message):
         # Get the link from the command
         link = message.text.split(None, 1)[1]
 
-        # Create a temporary folder to store the downloaded file
-        temp_folder = "downloads"
-        os.makedirs(temp_folder, exist_ok=True)
-
         # Determine the filename using Content-Disposition
         response = requests.head(link)
         content_disposition = response.headers.get('Content-Disposition')
@@ -35,10 +30,11 @@ def download_file(client, message):
             original_filename = content_disposition.split('filename=')[1].strip('\"')
             # Replace invalid characters with underscores
             sanitized_filename = re.sub(r'[\/:*?"<>|]', '_', original_filename)
-            filename = os.path.join(temp_folder, sanitized_filename)
+            filename = os.path.join(os.getcwd(), sanitized_filename)
         else:
-            # If Content-Disposition is not present, use unquoted URL filename
-            filename = os.path.join(temp_folder, unquote(os.path.basename(link)))
+            # If Content-Disposition is not present, inform the user
+            message.reply_text("Content-Disposition header not found. Unable to determine filename.")
+            return
 
         # Download the file using requests
         with open(filename, 'wb') as file:
@@ -48,9 +44,8 @@ def download_file(client, message):
         # Send the downloaded file to the user
         message.reply_document(document=filename)
 
-        # Remove the temporary folder and its contents
+        # Remove the downloaded file
         os.remove(filename)
-        os.rmdir(temp_folder)
 
     except IndexError:
         # Handle the case where the command is missing the link
