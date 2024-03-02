@@ -3,13 +3,27 @@ import requests
 import os
 import re
 from urllib.parse import unquote
+import threading
 
 # Set your API credentials
+api_id = "your_api_id"
 api_id = "10471716"
 api_hash = "f8a1b21a13af154596e2ff5bed164860"
 bot_token = "6365859811:AAGK5hlLKtLf-RqlaEXngZTWnfSPISerWPI"
 
+# Create the Pyrogram client
 app = Client("my_bot", api_id=api_id, api_hash=api_hash, bot_token=bot_token)
+
+# Function to download a chunk of the file
+def download_chunk(url, start_byte, end_byte, filename, semaphore):
+    headers = {'Range': f'bytes={start_byte}-{end_byte}'}
+    with requests.get(url, headers=headers, stream=True) as response:
+        response.raise_for_status()
+        with open(filename, 'ab') as file:
+            for chunk in response.iter_content(chunk_size=8192):
+                if chunk:
+                    file.write(chunk)
+    semaphore.release()
 
 # Define a start message handler
 @app.on_message(filters.command("start"))
@@ -37,13 +51,33 @@ def download_file(client, message):
             message.reply_text("Content-Disposition header not found. Unable to determine filename.")
             return
 
-        # Download the file using requests
-        with requests.get(link, stream=True) as response:
-            response.raise_for_status()
-            with open(filename, 'wb') as file:
-                for chunk in response.iter_content(chunk_size=8192):
-                    if chunk:
-                        file.write(chunk)
+        # Determine file size
+        file_size = int(response.headers.get('Content-Length', 0))
+
+        # Number of threads to use (adjust based on your preference)
+        num_threads = 4
+
+        # Calculate chunk size for each thread
+        chunk_size = file_size // num_threads
+
+        # Create a semaphore to control thread synchronization
+        semaphore = threading.Semaphore(0)
+
+        # List to store thread objects
+        threads = []
+
+        # Download the file using multiple threads
+        with open(filename, 'wb') as file:
+            for i in range(num_threads):
+                start_byte = i * chunk_size
+                end_byte = (i + 1) * chunk_size - 1 if i < num_threads - 1 else None
+                thread = threading.Thread(target=download_chunk, args=(link, start_byte, end_byte, filename, semaphore))
+                threads.append(thread)
+                thread.start()
+
+            # Wait for all threads to finish
+            for thread in threads:
+                thread.join()
 
         # Send the downloaded file to the user
         message.reply_document(document=filename)
