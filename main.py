@@ -1,7 +1,6 @@
 from pyrogram import Client, filters
 from pyrogram.types import Message
-from aria2p import API
-from aria2p import Aria2, Aria2RPC
+from aria2p import API, Aria2RPC
 
 aria2 = Aria2(Aria2RPC())
 
@@ -41,8 +40,9 @@ def download_link(_, message: Message):
     # Extract the link from the message
     download_link = message.text.strip()
 
-    # Use the global aria2 instance to download the file
+    # Use aria2 to download the file
     download_path = "downloads/"
+    aria2 = Aria2RPC()
     download = aria2.add_uris([download_link], {"dir": download_path})
 
     # Wait for the download to finish
@@ -59,4 +59,4 @@ def download_link(_, message: Message):
 
 
 if __name__ == "__main__":
-    bot.run()
+    bot.run() 
