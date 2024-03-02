@@ -2,12 +2,10 @@ from pyrogram import Client, filters
 import wget
 import os
 import requests
-import re
 
 api_id = "10471716"
 api_hash = "f8a1b21a13af154596e2ff5bed164860"
 bot_token = "6365859811:AAGK5hlLKtLf-RqlaEXngZTWnfSPISerWPI"
-
 # Create the Pyrogram client
 app = Client("my_bot", api_id=api_id, api_hash=api_hash, bot_token=bot_token)
 
@@ -32,10 +30,8 @@ def download_file(client, message):
         response = requests.head(link)
         content_disposition = response.headers.get('Content-Disposition')
         if content_disposition and 'filename' in content_disposition:
-            original_filename = content_disposition.split('filename=')[1].strip('\"')
-            # Replace invalid characters with underscores
-            sanitized_filename = re.sub(r'[\/:*?"<>|]', '_', original_filename)
-            filename = os.path.join(temp_folder, sanitized_filename)
+            # Use the Content-Disposition filename directly
+            filename = os.path.join(temp_folder, content_disposition.split('filename=')[1].strip('\"'))
         else:
             filename = os.path.join(temp_folder, os.path.basename(link))
 
