@@ -18,12 +18,19 @@ app = Client("my_bot", api_id=api_id, api_hash=api_hash, bot_token=bot_token)
 # Function to download a chunk of the file
 def download_chunk(url, start_byte, end_byte, filename, semaphore, session):
     headers = {'Range': f'bytes={start_byte}-{end_byte}'}
-    with session.get(url, headers=headers, stream=True) as response:
-        response.raise_for_status()
-        with open(filename, 'ab') as file:
-            for chunk in response.iter_content(chunk_size=8192):
-                if chunk:
-                    file.write(chunk)
+    try:
+        with session.get(url, headers=headers, stream=True) as response:
+            response.raise_for_status()
+            with open(filename, 'ab') as file:
+                for chunk in response.iter_content(chunk_size=8192):
+                    if chunk:
+                        file.write(chunk)
+    except requests.exceptions.HTTPError as e:
+        if e.response.status_code == 400:
+            # Retry the request for 400 Bad Request errors
+            download_chunk(url, start_byte, end_byte, filename, semaphore, session)
+        else:
+            raise
     semaphore.release()
 
 # Create a retry session with exponential backoff
