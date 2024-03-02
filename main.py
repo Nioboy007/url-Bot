@@ -3,7 +3,7 @@ from pyrogram.types import Message
 from aria2p import Aria2RPC
 
 # Replace 'YOUR_BOT_TOKEN' with your actual bot token
-API_KEY = 'YOUR_BOT_TOKEN'
+API_KEY = '6365859811:AAGK5hlLKtLf-RqlaEXngZTWnfSPISerWPI'
 
 bot = Client("aria2_bot", api_id=API_ID, api_hash=API_HASH, bot_token=API_KEY)
 
