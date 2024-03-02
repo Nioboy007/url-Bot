@@ -1,44 +1,52 @@
 from pyrogram import Client, filters
-from pyrogram.types import Message
 import wget
 import os
 
-API_ID = "10471716"
-API_HASH = "f8a1b21a13af154596e2ff5bed164860"
-BOT_TOKEN = "6365859811:AAGK5hlLKtLf-RqlaEXngZTWnfSPISerWPI"
+# Set your API credentials
+api_id = "10471716"
+api_hash = "f8a1b21a13af154596e2ff5bed164860"
+bot_token = "6365859811:AAGK5hlLKtLf-RqlaEXngZTWnfSPISerWPI"
 
-app = Client("my_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
+# Create the Pyrogram client
+app = Client("my_bot", api_id=api_id, api_hash=api_hash, bot_token=bot_token)
 
-
-def download_file(url, chat_id, message_id):
-    try:
-        filename = wget.download(url)
-        app.send_document(chat_id, document=filename, caption="File downloaded successfully! 📥")
-        os.remove(filename)  # Remove the downloaded file after uploading
-    except Exception as e:
-        app.send_message(chat_id, f"Error: {str(e)}")
-        app.edit_message_text(chat_id, message_id, text="Failed to download the file. 😔")
-
-
+# Define a start message handler
 @app.on_message(filters.command("start"))
-def start_command(_, message):
-    message.reply_text("Hello! Send me a link, and I'll download and upload the file for you. 📤")
+def start_message(client, message):
+    start_text = "Hello! I am your download bot. Send me a /download command followed by the link to download a file."
+    message.reply_text(start_text)
 
-
-@app.on_message(filters.text & filters.command)
-def handle_links(_, message: Message):
-    chat_id = message.chat.id
-    message_id = message.message_id
-
+# Define a command handler for the /download command
+@app.on_message(filters.command("download"))
+def download_file(client, message):
     try:
-        url = message.text
-        app.send_message(chat_id, "Downloading file... 🔄")
+        # Get the link from the command
+        link = message.text.split(None, 1)[1]
 
-        # Download the file and upload
-        download_file(url, chat_id, message_id)
+        # Create a temporary folder to store the downloaded file
+        temp_folder = "downloads"
+        os.makedirs(temp_folder, exist_ok=True)
+
+        # Generate a unique filename based on the link
+        filename = os.path.join(temp_folder, os.path.basename(link))
+
+        # Download the file using wget
+        wget.download(link, out=filename)
+
+        # Send the downloaded file to the user
+        message.reply_document(document=filename)
+
+        # Remove the temporary folder and its contents
+        os.remove(filename)
+        os.rmdir(temp_folder)
+
+    except IndexError:
+        # Handle the case where the command is missing the link
+        message.reply_text("Please provide a valid link after the /download command.")
+
     except Exception as e:
-        app.send_message(chat_id, f"Error: {str(e)}")
+        # Handle other exceptions
+        message.reply_text(f"An error occurred: {str(e)}")
 
-
-if __name__ == "__main__":
-    app.run()
+# Start the bot
+app.run()
