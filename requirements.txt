@@ -1,2 +1,3 @@
 pyrogram
 aria2p
+Tgcrypto
