@@ -4,7 +4,7 @@ from aria2p import API
 # Replace 'YOUR_BOT_TOKEN' with your actual bot token
 API_KEY = '6365859811:AAGK5hlLKtLf-RqlaEXngZTWnfSPISerWPI'
 API_ID = 10471716 # Replace with your actual API ID
-API_HASH = "f8a1b21a13af154596e2ff5bed164860 "  # Replace with your actual API HASH
+API_HASH = "f8a1b21a13af154596e2ff5bed164860"  # Replace with your actual API HASH
 bot = Client("aria2_bot", api_id=API_ID, api_hash=API_HASH, bot_token=API_KEY)
 
 
